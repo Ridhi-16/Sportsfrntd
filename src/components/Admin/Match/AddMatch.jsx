@@ -15,7 +15,7 @@ export default function AddMatch() {
     const today = new Date().toISOString().split("T")[0];
 
 
-    const { register, handleSubmit, reset, formState: { errors } } = useForm()
+    const { register, handleSubmit, reset, watch, formState: { errors } } = useForm()
     const [sport, setSport] = useState([])
     const [sportId, setSportId] = useState("")
     const [applications, setApplications] = useState([])
@@ -23,6 +23,7 @@ export default function AddMatch() {
     const [leagueId, setLeagueId] = useState("")
     // const [allAnnouncements, setAllAnnouncements] = useState([]);
     const [announcementDates, setAnnouncementDates] = useState({ startDate: "", endDate: "" });
+    const [predictedAttendance, setPredictedAttendance] = useState(null);
 
 
 
@@ -41,6 +42,34 @@ export default function AddMatch() {
     const data = {
         status: "Active"
     }
+
+
+    const fetchPredictedAttendance = () => {
+        const matchDate = watch("matchDate");
+        const matchTime = watch("matchTime");
+        const matchName = watch("matchName") || "Upcoming Match";
+
+        if (!matchDate || !matchTime) return;
+
+        const matchData = { matchDate, matchTime, matchName };
+
+        ApiService.predictAttendance(matchData)
+            .then(res => {
+                // Axios returns response inside res.data
+                if (res.data && res.data.attendance != null) {
+                    setPredictedAttendance(res.data.attendance);
+                }
+            })
+            .catch(err => console.error("Attendance prediction error:", err));
+    };
+
+
+
+
+
+    useEffect(() => {
+        fetchPredictedAttendance();
+    }, [watch("matchDate"), watch("matchTime"), watch("matchName")]);
 
 
     const fetchData = () => {
@@ -150,14 +179,14 @@ export default function AddMatch() {
         const formatDate = (d) =>
             new Date(d).toISOString().split("T")[0];
         console.log("League:", selectedAnnouncement);
-console.log("Dates:", announcementDates);
+        console.log("Dates:", announcementDates);
 
         setAnnouncementDates({
             startDate: formatDate(selectedAnnouncement.startDate),
             endDate: formatDate(selectedAnnouncement.endDate),
         });
     }, [leagueId, leagueList]);
-    
+
 
 
 
@@ -374,7 +403,7 @@ console.log("Dates:", announcementDates);
                                                                     required
                                                                     type="date"
                                                                     className="form-control"
-                                                                  
+
                                                                     min={announcementDates.startDate || today}
                                                                     max={announcementDates.endDate || undefined}
                                                                     {...register("matchDate", {
@@ -420,6 +449,15 @@ console.log("Dates:", announcementDates);
                                                             </div>
                                                         </div>
                                                     </div>
+
+
+                                                    {predictedAttendance && (
+                                                        <div className="alert alert-info mt-2">
+                                                            Predicted Attendance: {predictedAttendance}
+                                                        </div>
+                                                    )}
+
+
                                                     <div className="col-md-6">
                                                         <div className="form-group">
 

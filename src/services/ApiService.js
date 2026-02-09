@@ -159,6 +159,28 @@ class ApiServices{
        // optional auth
     );
   }
+  
+ predictAttendance(matchData) {
+  return axios.post(
+    "https://sportbcknd.onrender.com/ai/predict-attendance",
+    matchData
+  );
+}
+
+
+  suggestMatch(data) {
+    // data = { userId: "..." }
+    return axios.post(BASEURL + "/ai/suggest-match", data, {
+      headers: this.getToken(),
+    });
+  }
+
+  askAI(data) {
+    // data = { prompt: "..." }
+    return axios.post(BASEURL + "/ai/ask", data, {
+      headers: this.getToken(),
+    });
+  }
 
 
 
